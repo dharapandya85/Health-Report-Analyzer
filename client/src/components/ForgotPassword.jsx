@@ -71,8 +71,14 @@ const ForgotPassword = () => {
         <div className="auth-toggle">
           <p>
             Remember your password?{" "}
-            <Link to="/" className="btn-toggle" style={{ textDecoration: "none" }}>
+            <Link to="/login" className="btn-toggle" style={{ textDecoration: "none" }}>
               Sign in
+            </Link>
+          </p>
+          <p>
+            
+            <Link to="/" className="btn-toggle" style={{ textDecoration: "none" }}>
+               Back to Home
             </Link>
           </p>
         </div>
