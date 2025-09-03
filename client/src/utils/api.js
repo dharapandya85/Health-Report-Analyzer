@@ -84,8 +84,22 @@ export const uploadFile = async (file, onProgress) => {
         }
       },
     });
+    const raw=response.data;
+    const normalized={
+      reportId:raw.reportId||raw._id||raw.id||Date.now().toString(),
+      filename:raw.filename||'',
+      createdAt:raw.createAt||null,
+      healthParameters:(raw.healthParameters||raw.parameters||[]).map((p)=>({
+        name:p.name,
+        value:p.value,
+        unit:p.unit||'',
+        normalRange:p.reference||p.normalRange||'N/A',
+        status:determineStatus(p),
+        category:p.category||'General'
 
-    return response.data;
+      }))
+    };
+    return normalized;
   } catch (error) {
     console.error('Upload error details:', error.response?.data);
     const errorMessage =
@@ -95,11 +109,24 @@ export const uploadFile = async (file, onProgress) => {
     throw new Error(errorMessage);
   }
 };
-
+function determineStatus(param){
+  if(!param.value||!(param.reference||param.normalRange)) return 'UNKNOWN';
+  const reference=param.reference|| param.normalRange;
+  const rangeMatch=param.reference.match(/(d\d+\.?\d*)-(\d+\.?\d*)/);
+  if(rangeMatch){
+    const [_,low,high]=rangeMatch;
+    const val=parseFloat(param.value);
+    if(val<parseFloat(low)) return 'Low';
+    if(val>parseFloat(high)) return 'High';
+    return 'Normal';
+  }
+  return 'UNKNOWN';
+}
 // Fetch all reports
 export const fetchReports = async () => {
   try {
     const response = await api.get('/reports');
+    return response.data.map(normalizedReport);
     return response.data;
   } catch (error) {
     throw new Error(
@@ -112,7 +139,7 @@ export const fetchReports = async () => {
 export const fetchReport = async (reportId) => {
   try {
     const response = await api.get(`/reports/${reportId}`);
-    return response.data;
+    return normalizeReport(response.data);
   } catch (error) {
     throw new Error(
       error.response?.data?.error || 'Failed to fetch report'
