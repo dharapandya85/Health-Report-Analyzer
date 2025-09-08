@@ -13,9 +13,11 @@ import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
 import LandingPage from './components/LandingPage';
 import Footer from './components/Footer';
+import ContactUs from './components/ContactUs';
 import { getCurrentUser } from './utils/api';
 import './styles/App.css';
 import FAQ from "./components/FAQ";
+import { Link } from "react-router-dom";
 
 // Dashboard Component - Main authenticated app
 function Dashboard({ user, setUser }) {
@@ -67,6 +69,7 @@ function Dashboard({ user, setUser }) {
           </div>
           <div className="header-actions">
             <Link to="/" className="btn-home">🏠 Go to Home</Link>
+            <Link to="/contact" className="btn-contact">📧 Contact Us</Link>
             <UserProfile user={user} onLogout={handleLogout} />
           </div>
         </div>
@@ -170,17 +173,24 @@ function App() {
     <Router>
       <div className="app">
         <Routes>
-          {/* Landing page - default route for non-authenticated users */}
+          {/* Landing page - accessible to all users */}
           <Route
             path="/"
             element={
-              user ? <Navigate to="/dashboard" /> : (
-                <>
-                  <LandingPage user={user} />
-                  <FAQ />
-                  <Footer />
-                </>
-              )
+              <>
+                <LandingPage user={user} setUser={setUser} />
+                <FAQ />
+                <Footer />
+              </>
+            }
+          />
+        
+          {/* Landing page - default route for non-authenticated users */}
+          <Route
+            path="/home"
+            element={
+              user ? <Navigate to="/dashboard" /> : <Navigate to="/" />
+                
             }
           />
 
@@ -191,8 +201,15 @@ function App() {
               user ? <Navigate to="/dashboard" /> : (
                 <>
                   <header className="app-header">
+                     <div className="header-content">
+                      <div className="header-text">
                     <h1>🏥 Health Report Analyzer</h1>
                     <p>Secure platform to analyze your health reports with AI insights</p>
+                    </div>
+                      <div className="header-actions">
+                        <Link to="/" className="btn-home">🏠 Back to Home</Link>
+                      </div>
+                    </div>
                   </header>
                   <main className="app-main">
                     <AuthForm onLogin={handleLogin} isLogin={true} />
@@ -208,8 +225,15 @@ function App() {
               user ? <Navigate to="/dashboard" /> : (
                 <>
                   <header className="app-header">
+                    <div className="header-content">
+                      <div className="header-text">
                     <h1>🏥 Health Report Analyzer</h1>
                     <p>Secure platform to analyze your health reports with AI insights</p>
+                     </div>
+                      <div className="header-actions">
+                        <Link to="/" className="btn-home">🏠 Back to Home</Link>
+                      </div>
+                    </div>
                   </header>
                   <main className="app-main">
                     <AuthForm onLogin={handleLogin} isLogin={false} />
@@ -225,8 +249,15 @@ function App() {
               user ? <Navigate to="/dashboard" /> : (
                 <>
                   <header className="app-header">
+                    <div className="header-content">
+                      <div className="header-text">
                     <h1>🏥 Health Report Analyzer</h1>
                     <p>Reset your password</p>
+                    </div>
+                      <div className="header-actions">
+                        <Link to="/" className="btn-home">🏠 Back to Home</Link>
+                      </div>
+                    </div>
                   </header>
                   <main className="app-main">
                     <ForgotPassword />
@@ -243,8 +274,15 @@ function App() {
               user ? <Navigate to="/dashboard" /> : (
                 <>
                   <header className="app-header">
+                    <div className="header-content">
+                      <div className="header-text">
                     <h1>🏥 Health Report Analyzer</h1>
                     <p>Enter your new password</p>
+                     </div>
+                      <div className="header-actions">
+                        <Link to="/" className="btn-home">🏠 Back to Home</Link>
+                      </div>
+                    </div>
                   </header>
                   <main className="app-main">
                     <ResetPassword />
@@ -252,6 +290,31 @@ function App() {
                   <Footer />
                 </>
               )
+            }
+          />
+          {/* Contact Us route */}
+          <Route
+            path="/contact"
+            element={
+              user ? (
+                <>
+                  <header className="app-header">
+                    <div className="header-content">
+                      <div className="header-text">
+                        <h1>🏥 Health Report Analyzer</h1>
+                        <p>We'd love to hear from you!</p>
+                      </div>
+                      <div className="header-actions">
+                        <Link to="/dashboard" className="btn-home">🏠 Back to Dashboard</Link>
+                      </div>
+                    </div>
+                  </header>
+                  <main className="app-main">
+                    <ContactUs user={user} />
+                  </main>
+                  <Footer />
+                </>
+              ) : <Navigate to="/login" />
             }
           />
 

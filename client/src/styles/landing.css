@@ -52,7 +52,8 @@
 }
 
 .landing-signin-button,
-.landing-signup-button {
+.landing-signup-button,
+.landing-logout-button {
   background: rgba(255, 255, 255, 0.2);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -62,6 +63,9 @@
   cursor: pointer;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .landing-signin-button:hover,
@@ -71,7 +75,17 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
+.landing-logout-button {
+  background: rgba(255, 30, 30, 0.2);
+  border-color: rgba(255, 30, 30, 0.3);
+}
 
+.landing-logout-button:hover {
+  background: rgba(255, 30, 30, 0.3);
+  border-color: rgba(255, 30, 30, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
 /* Hero Section */
 .landing-hero-section {
   padding: 6rem 0 4rem;
@@ -112,6 +126,9 @@
 
 .landing-hero-button-container {
   margin-top: 2rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
 }
 
 .landing-primary-button {
@@ -126,12 +143,29 @@
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
+.landing-contact-button {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+}
 
 .landing-primary-button:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
   background: linear-gradient(45deg, #5a6fd8, #6a42a0);
 }
+
+.landing-contact-button:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+}
+
 
 /* Features Section */
 .landing-features-section {

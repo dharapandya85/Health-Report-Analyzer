@@ -887,6 +887,38 @@
 .header-text {
   flex: 1;
 }
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn-home, .btn-contact {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: white;
+  text-decoration: none;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+}
+
+.btn-home:hover, .btn-contact:hover {
+  background: linear-gradient(45deg, #5a6fd8, #6a42a0);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(102, 126, 234, 0.5);
+}
+
+.btn-contact {
+  background: linear-gradient(45deg, #667eea, #764ba2);
+}
+
+.btn-contact:hover {
+  background: linear-gradient(45deg, #5a6fd8, #6a42a0);
+}
 
 .auth-loading {
   display: flex;

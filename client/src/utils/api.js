@@ -7,6 +7,9 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 600000, // 300 seconds (5 minutes) for file uploads with OCR
+   headers: {
+    'Content-Type': 'application/json'
+  }
 });
 
 // Add token to requests
@@ -16,7 +19,12 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
-});
+},
+(error) => {
+    console.error('Request interceptor error:', error);
+    return Promise.reject(error);
+  }
+);
 
 // Handle auth errors
 api.interceptors.response.use(
@@ -26,6 +34,18 @@ api.interceptors.response.use(
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.reload();
+    }
+    // Log all errors for debugging
+    console.error('API error:', error?.response?.data || error.message);
+    
+    // Network errors
+    if (error.message === 'Network Error' && !navigator.onLine) {
+      console.error('No internet connection');
+    }
+    
+    // Timeout errors
+    if (error.code === 'ECONNABORTED' && error.message.includes('timeout')) {
+      console.error('Request timeout');
     }
     return Promise.reject(error);
   }
@@ -42,7 +62,16 @@ export const login = async (email, password) => {
     );
   }
 };
-
+export const googleAuth = async (userData) => {
+  try {
+    const response = await api.post('/auth/google-auth', userData);
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.error || 'Google authentication failed'
+    );
+  }
+};
 export const register = async (userData) => {
   try {
     const response = await api.post('/auth/register', userData);
@@ -134,7 +163,6 @@ export const fetchReports = async () => {
   try {
     const response = await api.get('/reports');
     return response.data.map(normalizedReport);
-    return response.data;
   } catch (error) {
     throw new Error(
       error.response?.data?.error || 'Failed to fetch reports'
@@ -182,8 +210,12 @@ export const forgotPassword = async (email) => {
     const response = await api.post('/auth/forgot-password', { email });
     return response.data;
   } catch (error) {
+    console.error('Forgot password error:', error.response?.data);
     throw new Error(
-      error.response?.data?.error || 'Failed to send reset link'
+      error.response?.data?.message || 
+      error.response?.data?.details || 
+      error.response?.data?.error ||
+       'Failed to send reset link'
     );
   }
 };

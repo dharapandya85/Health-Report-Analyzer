@@ -9,7 +9,10 @@ const router = express.Router();
 
 const generateToken = (userId) => {
   return jwt.sign(
-    { userId },
+    { userId,
+      iat: Math.floor(Date.now() / 1000),
+      type: 'access'
+    },
     process.env.JWT_SECRET,
     { expiresIn: process.env.SESSION_EXPIRE || '7d' }
   );
@@ -26,12 +29,18 @@ router.post('/register', async (req, res) => {
         error: 'All fields are required'
       });
     }
-
-    if (password.length < 6) {
+    // Check for strong password (match client-side validation)
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+    if (!strongPasswordRegex.test(password)) {
       return res.status(400).json({
-        error: 'Password must be at least 6 characters'
+        error: 'Password must be at least 8 characters and include uppercase, lowercase, number, and special character'
       });
     }
+    // if (password.length < 6) {
+    //   return res.status(400).json({
+    //     error: 'Password must be at least 6 characters'
+    //   });
+    // }
 
     if (password !== confirm_password) {
       return res.status(400).json({
@@ -48,8 +57,8 @@ router.post('/register', async (req, res) => {
     }
 
     // Hash password
-    const saltRounds = 12;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    // const saltRounds = 12;
+    // const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Create new user
     const newUser = new User({
@@ -104,6 +113,8 @@ router.post('/login', async (req, res) => {
         error: 'Account is deactivated'
       });
     }
+    // Special handling for Google-authenticated users who have reset their password
+    console.log(`Login attempt for ${email}: Google Auth = ${user.googleAuth}, Password Changed = ${user.passwordChanged}`);
 
     // Check password
     const isValidPassword = await bcrypt.compare(password, user.password);
@@ -166,7 +177,14 @@ router.post("/forgot-password", async (req, res) => {
         pass: process.env.EMAIL_PASS
       }
     });
-
+    // Verify the connection configuration
+    transporter.verify(function(error, success) {
+      if (error) {
+        console.error("SMTP Verification Error:", error);
+      } else {
+        console.log("SMTP server is ready to take our messages");
+      }
+    });
     await transporter.sendMail({
       from: `"Health Report Analyzer" <${process.env.EMAIL_USER}>`,
       to: user.email,
@@ -176,6 +194,7 @@ router.post("/forgot-password", async (req, res) => {
 
     res.json({ message: "If the email exists, a reset link has been sent" });
   } catch (err) {
+    console.error("Password reset email error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -197,15 +216,16 @@ router.post("/reset-password/:token", async (req, res) => {
       return res.status(400).json({ message: "Invalid or expired token" });
     }
 
-    const salt = await bcrypt.genSalt(10);
+    //const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
     user.resetPasswordToken = null;
     user.resetPasswordExpire = null;
-
+    user.passwordChanged = true;
     await user.save();
-
+    console.log(`Password reset successful for user: ${user.email}`);
     res.json({ message: "Password updated successfully" });
   } catch (err) {
+    console.error("Password reset error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -240,6 +260,66 @@ router.get('/me', async (req, res) => {
     console.error('Token verification failed');
     res.status(401).json({
       error: 'Invalid token'
+    });
+  }
+});
+// Google Authentication
+router.post('/google-auth', async (req, res) => {
+  try {
+    const { email, firstName, lastName } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({
+        error: 'Email is required'
+      });
+    }
+
+    // Check if user exists
+    let user = await User.findOne({ email: email.toLowerCase() });
+    
+    // If user doesn't exist, create a new one
+    if (!user) {
+      const randomPassword = crypto.randomBytes(16).toString('hex');
+      const hashedPassword = await bcrypt.hash(randomPassword, 12);
+      
+      user = new User({
+        email: email.toLowerCase(),
+        firstName: firstName || 'Google',
+        lastName: lastName || 'User',
+        password: hashedPassword,
+        isActive: true,
+        googleAuth: true
+      });
+      
+      await user.save();
+    } else {
+      // Update user's name if it changed in Google
+      if (firstName && firstName !== user.firstName) {
+        user.firstName = firstName;
+      }
+      if (lastName && lastName !== user.lastName) {
+        user.lastName = lastName;
+      }
+      // Mark as Google authenticated if not already set
+      if (!user.googleAuth) {
+        user.googleAuth = true;
+      }
+      await user.save();
+    }
+
+    // Generate token
+    const token = generateToken(user._id);
+
+    res.json({
+      success: true,
+      message: 'Google authentication successful',
+      token,
+      user: user.toSafeObject()
+    });
+  } catch (error) {
+    console.error('Google auth failed', error.message);
+    res.status(500).json({
+      error: 'Failed to authenticate with Google'
     });
   }
 });

@@ -27,6 +27,14 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  googleAuth: {
+    type: Boolean,
+    default: false
+  },
+  passwordChanged: {
+    type: Boolean,
+    default: false
+  },
   resetPasswordToken: {
     type: String,
     default: null
@@ -52,11 +60,20 @@ userSchema.methods.toSafeObject = function () {
 };
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
+  try {
+    // Use a consistent salt rounds value of 10
+    const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, 10);
+  console.log(`Password hashed for user ${this.email} (Google auth: ${this.googleAuth}, Password changed: ${this.passwordChanged})`);
   next();
+} catch (error) {
+    console.error(`Error hashing password for user ${this.email}:`, error);
+    next(error);
+  }
 });
 
 userSchema.methods.comparePassword = function (candidatePassword) {
+  onsole.log(`Comparing password for user: ${this.email}, Google auth: ${this.googleAuth}, Password changed: ${this.passwordChanged}`);
   return bcrypt.compare(candidatePassword, this.password);
 };
 
