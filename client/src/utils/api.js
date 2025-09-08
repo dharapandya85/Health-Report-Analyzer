@@ -84,6 +84,7 @@ export const uploadFile = async (file, onProgress) => {
         }
       },
     });
+
     //Add Normalize response
     const raw= response.data;
     const normalized={
@@ -101,7 +102,6 @@ export const uploadFile = async (file, onProgress) => {
       })),
       isScannedDocument: raw.isScannedDocument || false,
       requiresManualReview: raw.requiresManualReview || false,
-
     };
     return normalized;
   } catch (error) {
@@ -113,6 +113,7 @@ export const uploadFile = async (file, onProgress) => {
     throw new Error(errorMessage);
   }
 };
+
 
 // Helper for status calculation
 function determineStatus(param){
@@ -132,6 +133,7 @@ function determineStatus(param){
 export const fetchReports = async () => {
   try {
     const response = await api.get('/reports');
+    return response.data.map(normalizedReport);
     return response.data;
   } catch (error) {
     throw new Error(
@@ -144,7 +146,7 @@ export const fetchReports = async () => {
 export const fetchReport = async (reportId) => {
   try {
     const response = await api.get(`/reports/${reportId}`);
-    return response.data;
+    return normalizeReport(response.data);
   } catch (error) {
     throw new Error(
       error.response?.data?.error || 'Failed to fetch report'
