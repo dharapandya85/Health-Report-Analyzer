@@ -115,8 +115,26 @@ export const uploadFile = async (file, onProgress) => {
         }
       },
     });
+    //Add Normalize response
+    const raw= response.data;
+    const normalized={
+      reportId:raw.reportId||raw._id||raw.id||Date.now().toString(),
+      filename:raw.filename||'',
+      createdAt:raw.createdAt||null,
+      healthParameters:(raw.healthParameters||[]).map((p)=>({
+        name:p.name,
+        value:p.value,
+        unit:p.unit||'',
+        normalRange:p.normalRange||'N/A',
+        status:determineStatus(p),
+        category:p.category||'General'
 
-    return response.data;
+      })),
+      isScannedDocument: raw.isScannedDocument || false,
+      requiresManualReview: raw.requiresManualReview || false,
+
+    };
+    return normalized;
   } catch (error) {
     console.error('Upload error details:', error.response?.data);
     const errorMessage =
@@ -126,7 +144,19 @@ export const uploadFile = async (file, onProgress) => {
     throw new Error(errorMessage);
   }
 };
-
+// Helper for status calculation
+function determineStatus(param){
+  if(!param.value||!param.normalRange) return "UNKNOWN";
+  const rangeMatch=param.reference?.match(/(\d+\.?\d*)-(\d+\.?\d*)/);
+  if(rangeMatch){
+    const [,low,high]=rangeMatch;
+    const val=parseFloat(param.value);
+    if(val<parseFloat(low)) return "Low";
+    if(val>parseFloat(high)) return "High";
+    return "Normal";
+  }
+  return "UNKNOWN";
+}
 // Fetch all reports
 export const fetchReports = async () => {
   try {

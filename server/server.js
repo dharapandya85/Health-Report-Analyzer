@@ -12,6 +12,10 @@ const PORT = process.env.PORT || 5001;
 // Set server timeout to 5 minutes for OCR processing
 app.timeout = 300000;
 
+//Ensure Express handles large payloads for OCR images
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ extended: true, limit: '20mb' }));
+
 // Configure CORS for frontend communication
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
