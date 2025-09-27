@@ -6,6 +6,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 600000, // 600 seconds (10 minutes) for file uploads with OCR
+
 });
 
 // Add token to requests
@@ -21,6 +22,7 @@ api.interceptors.request.use(
     console.error('Request interceptor error:', error);
     return Promise.reject(error);
   }
+
 );
 
 // Handle auth errors
@@ -33,7 +35,7 @@ api.interceptors.response.use(
       localStorage.removeItem('user');
       window.location.reload();
     }
-    
+
     // Log all errors for debugging
     console.error('API error:', error?.response?.data || error.message);
     
@@ -46,7 +48,7 @@ api.interceptors.response.use(
     if (error.code === 'ECONNABORTED' && error.message.includes('timeout')) {
       console.error('Request timeout');
     }
-    
+
     return Promise.reject(error);
   }
 );
@@ -73,6 +75,8 @@ export const googleAuth = async (userData) => {
     );
   }
 };
+
+
 
 export const register = async (userData) => {
   try {
@@ -128,11 +132,9 @@ export const uploadFile = async (file, onProgress) => {
         normalRange:p.normalRange||'N/A',
         status:determineStatus(p),
         category:p.category||'General'
-
       })),
       isScannedDocument: raw.isScannedDocument || false,
       requiresManualReview: raw.requiresManualReview || false,
-
     };
     return normalized;
   } catch (error) {
@@ -161,7 +163,7 @@ function determineStatus(param){
 export const fetchReports = async () => {
   try {
     const response = await api.get('/reports');
-    return response.data;
+    return response.data.map(normalizedReport);
   } catch (error) {
     throw new Error(
       error.response?.data?.error || 'Failed to fetch reports'
@@ -173,7 +175,7 @@ export const fetchReports = async () => {
 export const fetchReport = async (reportId) => {
   try {
     const response = await api.get(`/reports/${reportId}`);
-    return response.data;
+    return normalizeReport(response.data);
   } catch (error) {
     throw new Error(
       error.response?.data?.error || 'Failed to fetch report'

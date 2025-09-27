@@ -7,6 +7,7 @@ const authMiddleware = require('../utils/authMiddleware');
 const Report = require('../models/Report');
 const { extractHealthParameters } = require('../utils/parameterExtractor');
 
+//const pdfjsLib=require('pdfjs-dist');
 const router = express.Router();
 
 // extra helper to clean and structure OCR text
@@ -98,6 +99,7 @@ router.post('/', authMiddleware, upload.single('file'), async (req, res) => {
       }
       console.log('Extracted parameters:', healthParameters);
 
+      
       // If no parameters found and it's not a scanned document, reject
       if ((!healthParameters || healthParameters.length === 0) && !isScannedDocument) {
         console.log('No health parameters found in extracted text');
@@ -273,6 +275,7 @@ async function extractTextFromImageBuffer(buffer) {
       bestText=text;
     }
     
+
     // Get image metadata for better processing decisions
     const metadata = await sharp(buffer).metadata();
     

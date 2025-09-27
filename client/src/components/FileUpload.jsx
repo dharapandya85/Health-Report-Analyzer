@@ -22,6 +22,8 @@ const FileUpload = ({ onFileProcessed, onError }) => {
 
   const { showLoading, hideLoading } = useLoading();
 
+  // Clean up the timer when component unmounts
+
   useEffect(() => {
     return () => resetProgress(); //ensure cleanup
   }, []);
@@ -152,6 +154,7 @@ const FileUpload = ({ onFileProcessed, onError }) => {
         onError(error.message || "Upload failed. Please try again.");
       }
     } finally {
+
       setLoading(false);
       resetProgress();
       setUploadProgress(0);
